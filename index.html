@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Giovanna Freitas · Gestão da clínica</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f8f5ef;--card:#fffdf9;--ink:#4b4339;--mut:#8a7f70;--gold:#b58e45;--gold2:#8f6d2c;--line:#e6dcc8;--ok:#5f7f52;--bad:#a4543f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16130f;--card:#211d17;--ink:#eee6d6;--mut:#a89c88;--line:#3a3327;--gold:#c9a45a;--gold2:#dcbb78;--ok:#8fb27f;--bad:#d98a74}}
+:root[data-theme="dark"]{--bg:#16130f;--card:#211d17;--ink:#eee6d6;--mut:#a89c88;--line:#3a3327;--gold:#c9a45a;--gold2:#dcbb78;--ok:#8fb27f;--bad:#d98a74}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Jost,system-ui,sans-serif}
+h1,h2,h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;margin:0;color:var(--gold2)}
+h2{font-size:1.5rem;text-transform:capitalize}h3{font-size:1.2rem;margin:18px 0 8px}
+header{text-align:center;padding:26px 16px 8px}
+.gf{font:600 2.6rem/1 "Cormorant Garamond",Georgia,serif;color:var(--gold)}
+.gf sup{font-size:.9rem}
+header h1{font-size:1.25rem;letter-spacing:.28em;margin-top:6px}
+header p{margin:2px 0 0;font:italic 500 1rem "Cormorant Garamond",Georgia,serif;color:var(--mut)}
+#tabs{display:flex;gap:8px;overflow-x:auto;padding:14px 16px;justify-content:center}
+.tab,.btn,.chip,.ghost{font:500 14px Jost,system-ui,sans-serif;border-radius:999px;cursor:pointer;white-space:nowrap}
+.tab{border:1px solid var(--gold);background:transparent;color:var(--gold2);padding:8px 18px}
+.tab.on,.btn,.chip.on{background:var(--gold);color:#fff;border:1px solid var(--gold)}
+.btn{padding:10px 26px;margin-top:12px}.btn:hover,.tab:hover{filter:brightness(1.07)}
+.ghost{background:none;border:1px solid var(--line);color:var(--gold2);padding:4px 12px}
+.chip{background:transparent;border:1px solid var(--line);color:var(--ink);padding:6px 14px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+main{max-width:980px;margin:0 auto;padding:0 16px 40px;display:grid;gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+label{display:grid;gap:4px;color:var(--mut);font-size:13px}
+input,select{font:15px Jost,system-ui,sans-serif;padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);width:100%}
+.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.wk,.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.wk span{color:var(--mut);font-size:12px}
+.day{position:relative;aspect-ratio:1;border:1px solid transparent;border-radius:50%;background:none;color:var(--ink);font:15px Jost,sans-serif;cursor:pointer}
+.day:hover{border-color:var(--gold)}.day.today{border-color:var(--line)}
+.day.sel{background:var(--gold);color:#fff}
+.day b{position:absolute;right:2px;top:2px;min-width:16px;height:16px;border-radius:8px;background:var(--gold2);color:#fff;font-size:10px;line-height:16px}
+.item{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid var(--line)}
+.item small,.mut{color:var(--mut)}
+.tot{font:600 1.3rem "Cormorant Garamond",Georgia,serif;color:var(--gold2)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:14px 0}
+.kpi{border:1px solid var(--line);border-radius:18px;padding:12px 14px}
+.kpi span{font-size:12px;color:var(--mut)}.kpi div{font:600 1.5rem "Cormorant Garamond",Georgia,serif}
+.in{color:var(--ok)}.out{color:var(--bad)}
+.tag{font-size:12px;padding:2px 10px;border-radius:999px;border:1px solid var(--gold);color:var(--gold2)}
+.tag.ok{border-color:var(--ok);color:var(--ok)}
+.rm{background:none;border:0;color:var(--bad);cursor:pointer;font-size:13px}
+.scroll{overflow-x:auto}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--gold2);color:#fff;padding:10px 20px;border-radius:999px;opacity:0;transition:.25s;pointer-events:none}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100dvh}
+.side{position:sticky;top:0;height:100dvh;background:var(--card);border-right:1px solid var(--line);padding:24px 16px;display:flex;flex-direction:column;gap:20px}
+.brand{display:flex;align-items:center;gap:12px}.brand .gf{font-size:2.2rem}
+.brand b{display:block;font:600 1.05rem "Cormorant Garamond",Georgia,serif;letter-spacing:.16em;color:var(--gold2)}
+.brand small,.slogan{color:var(--mut);font-size:13px}
+.slogan{margin:auto 0 0;font:italic 500 1rem "Cormorant Garamond",Georgia,serif;text-align:center}
+.side #tabs{flex-direction:column;justify-content:flex-start;overflow:visible;padding:0;gap:4px}
+.nv{display:flex;align-items:center;gap:12px;width:100%;padding:11px 16px;border:0;border-radius:999px;background:none;color:var(--ink);font:500 15px Jost,system-ui,sans-serif;cursor:pointer;text-align:left}
+.nv:hover{background:var(--bg)}.nv.on{background:var(--gold);color:#fff}
+.nv svg,.btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.btn svg{width:16px;height:16px;vertical-align:-3px;margin-right:6px;stroke-width:2}
+.app main{max-width:1100px;width:100%;margin:0;padding:26px 28px 48px}
+.ph{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.ph .btn{margin:0}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.dh{font-size:1.15rem;margin:18px 0 0;cursor:pointer;text-transform:capitalize}.dh.cur{color:var(--gold)}
+@media(max-width:820px){
+.app{grid-template-columns:1fr;padding-bottom:76px}
+.side{position:fixed;top:auto;bottom:0;left:0;right:0;height:auto;flex-direction:row;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));z-index:5;border-right:0;border-top:1px solid var(--line)}
+.brand,.slogan,.side>.btn,#st{display:none}
+.side #tabs{flex-direction:row;width:100%;justify-content:space-around;gap:2px}
+.nv{flex-direction:column;gap:2px;font-size:11px;padding:6px 4px;border-radius:16px;justify-content:center;align-items:center;text-align:center}
+.app main{padding:16px 14px 24px}.two{grid-template-columns:1fr}
+#toast{bottom:calc(88px + env(safe-area-inset-bottom,0px))}}
+#login{position:fixed;inset:0;z-index:20;background:var(--bg);display:grid;place-items:center;padding:20px}#login[hidden]{display:none}
+.item.ag{cursor:pointer;border-radius:12px;padding-left:8px;padding-right:8px}.item.ag:hover,.item.ag:focus-visible{background:var(--bg)}#modal{position:fixed;inset:0;z-index:15;background:rgba(40,32,20,.45);display:grid;place-items:center;padding:16px}#modal[hidden]{display:none}#md{width:min(460px,100%);max-height:90dvh;overflow:auto}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <div class="brand"><div class="gf">GF<sup>✦</sup></div><div><b>GIOVANNA FREITAS</b><small>Clínica de Estética</small></div></div>
+  <button class="btn" style="margin:0" onclick="novo()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Novo agendamento</button>
+  <nav id="tabs" aria-label="Menu principal"></nav>
+  <p class="slogan">Beleza que revela sua essência.</p>
+  <small id="st" class="mut" style="text-align:center"></small>
+</aside>
+<main id="main"></main>
+</div>
+<div id="login" hidden><section class="card" style="width:min(380px,100%);text-align:center"><div class="gf">GF<sup>✦</sup></div><h2 style="letter-spacing:.14em">GIOVANNA FREITAS</h2><p class="mut" style="margin:0 0 16px;font-style:italic">Clínica de Estética</p>
+<div class="grid" style="grid-template-columns:1fr;text-align:left"><label>E-mail<input id="le" type="email" autocomplete="username"></label><label>Senha<input id="ls" type="password" autocomplete="current-password" onkeydown="if(event.key=='Enter')entrar()"></label></div>
+<button class="btn" onclick="entrar()">Entrar</button><p id="lm" class="out" role="alert"></p></section></div>
+<div id="modal" hidden onclick="if(event.target===this)fechar()"><section class="card" id="md" role="dialog" aria-modal="true"></section></div>
+<div id="toast" role="status"></div>
+<script>
+const $=s=>document.querySelector(s);
+const brl=v=>(+v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const parse=s=>{const[a,b,c]=s.split('-');return new Date(a,b-1,c)};
+const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return iso(d)};
+const fmt=s=>parse(s).toLocaleDateString('pt-BR');
+const uid=()=>crypto.randomUUID();
+const sum=a=>a.reduce((t,e)=>t+e.v,0);
+let S={pac:[],proc:[],ag:[],desp:[],seq:0};
+const save=()=>{try{localStorage.setItem('gf-clinica',JSON.stringify(S))}catch(e){}};
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+
+const FORMAS=[['din','Dinheiro'],['deb','Débito'],...Array.from({length:12},(_,i)=>['c'+(i+1),'Cartão '+(i+1)+'x'])];
+const TAXA_BASE=1; // % por parcela: 2x = 2%, 3x = 3%, 4x = 4% ... 12x = 12% (juros somado uma vez ao total)
+const taxa=n=>n>=2?+(n*TAXA_BASE).toFixed(4):0;
+function plano(total,f){const n=f[0]=='c'?+f.slice(1):1,t=taxa(n);return{n,t,final:+(total*(1+t/100)).toFixed(2)}}
+function gerarParcelas(d0,final,n){const b=Math.floor(final/n*100)/100,ps=[];for(let i=0;i<n;i++)ps.push({n:i+1,data:addDays(d0,30*i),valor:i==n-1?+(final-b*(n-1)).toFixed(2):b,pago:i==0});return ps}
+const formaLbl=f=>(FORMAS.find(x=>x[0]==f)||[0,f])[1];
+const PERS=[['dia','Dia'],['semana','Semana'],['quinzena','Quinzena'],['mes','Mês'],['semestre','Semestre'],['ano','Ano']];
+let view='agenda',per='mes',ref=iso(new Date()),sel=iso(new Date()),cal=new Date();cal.setDate(1);
+const svg=p=>`<svg viewBox="0 0 24 24" aria-hidden="true">${p}</svg>`;
+const I={plus:svg('<path d="M12 5v14M5 12h14"/>'),
+ agenda:svg('<rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/>'),
+ pac:svg('<circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-7 7-7s7 3 7 7M17 4a4 4 0 010 8M22 21c0-3-2-5-4-6"/>'),
+ proc:svg('<path d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z"/>'),
+ hist:svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+ sair:svg('<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>'),
+ caixa:svg('<path d="M3 7h16a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M3 7l12-4v4M16 14h2"/>')};
+const tabs=[['agenda','Agenda'],['hist','Histórico'],['pac','Pacientes'],['proc','Procedimentos'],['caixa','Fluxo de caixa'],['sair','Sair']];
+let op={};
+const ph=(t,c,l)=>`<div class="ph"><h2>${t}</h2><button class="btn" onclick="${c}">${I.plus}${l}</button></div>`;
+const tg=k=>{op[k]=!op[k];render();if(op[k])$('#frm')?.scrollIntoView({behavior:'smooth',block:'center'})};
+function novo(){view='agenda';render();$('#frm')?.scrollIntoView({behavior:'smooth',block:'start'});$('#ap')?.focus({preventScroll:true})}
+function irHoje(){cal=new Date();cal.setDate(1);sel=iso(new Date());render()}
+
+function range(k,r){const d=parse(r),y=d.getFullYear(),m=d.getMonth();
+  if(k=='dia')return[r,r];
+  if(k=='semana'){const s=addDays(r,-d.getDay());return[s,addDays(s,6)]}
+  if(k=='quinzena')return d.getDate()<=15?[iso(new Date(y,m,1)),iso(new Date(y,m,15))]:[iso(new Date(y,m,16)),iso(new Date(y,m+1,0))];
+  if(k=='mes')return[iso(new Date(y,m,1)),iso(new Date(y,m+1,0))];
+  if(k=='semestre')return m<6?[iso(new Date(y,0,1)),iso(new Date(y,5,30))]:[iso(new Date(y,6,1)),iso(new Date(y,11,31))];
+  return[iso(new Date(y,0,1)),iso(new Date(y,11,31))]}
+
+function render(){
+  $('#tabs').innerHTML=tabs.map(([k,l])=>`<button class="nv ${view==k?'on':''}" onclick="${k=='sair'?'sb.auth.signOut()':`view='${k}';render();scrollTo(0,0)`}" ${view==k?'aria-current="page"':''}>${I[k]}<span>${l}</span></button>`).join('');
+  $('#main').innerHTML=({agenda:vAgenda,hist:vHist,pac:vPac,proc:vProc,caixa:vCaixa})[view]();
+  if(view=='agenda')prev();
+}
+
+/* ---------- Banco de dados (Supabase) ---------- */
+const SB_URL='https://cidbhvxdmmswttxotajk.supabase.co';      // Project Settings > API > Project URL
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpZGJodnhkbW1zd3R0eG90YWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2MDgzNTIsImV4cCI6MjEwNjE4NDM1Mn0.YKbjesTHKP3BHcn8khDQfJuLy_K_bSoIxxAQAqPm4Z0';  // Project Settings > API > anon public key
+let sb=null,ME=null;
+const MAP={
+ pac:o=>['pacientes',{id:o.id,nome:o.nome,telefone:o.tel||null,observacoes:o.obs||null}],
+ proc:o=>['procedimentos',{codigo:o.id,nome:o.nome,valor:o.valor}],
+ desp:o=>['despesas',{id:o.id,descricao:o.desc,valor:o.valor,data:o.data}],
+ ag:o=>['agendamentos',{id:o.id,data:o.data,hora:o.hora,paciente_id:o.pac,paciente_nome:o.pacNome,procedimento_codigo:o.proc,procedimento_nome:o.procNome,valor_procedimento:o.valor,desconto:o.desc,forma:o.forma||null,total:o.total,taxa_juros:o.taxa||0,total_final:o.totalFinal||o.total,atendido_por:o.atendidoPor||null}]};
+const TBL={pac:'pacientes',proc:'procedimentos',ag:'agendamentos',desp:'despesas'};
+const fail=r=>{toast('Erro ao salvar: '+r.error.message);load()};
+async function put(c,o){const[t,row]=MAP[c](o);let r=await sb.from(t).upsert(row);
+  if(!r.error&&c=='ag'){r=await sb.from('parcelas').delete().eq('agendamento_id',o.id);
+    if(!r.error&&o.parcelas.length)r=await sb.from('parcelas').insert(o.parcelas.map(p=>({agendamento_id:o.id,numero:p.n,vencimento:p.data,valor:p.valor,pago:p.pago})))}
+  if(r.error)fail(r)}
+async function del(c,id){const r=await sb.from(TBL[c]).delete().eq(c=='proc'?'codigo':'id',id);if(r.error)fail(r)}
+async function load(){
+  const R=await Promise.all([sb.from('pacientes').select('*').order('nome'),sb.from('procedimentos').select('*').order('codigo'),sb.from('agendamentos').select('*, parcelas(*), atendente:perfis!atendido_por(nome), pagador:perfis!pago_por(nome)').order('data'),sb.from('despesas').select('*').order('data'),sb.from('perfis').select('*').order('nome'),sb.from('auditoria').select('*').order('criado_em',{ascending:false}).limit(100)]);
+  const e=R.find(r=>r.error);if(e)return toast('Erro ao carregar: '+e.error.message);
+  const[a,b,c,d,pf,au]=R.map(r=>r.data);S.perfis=pf;S.aud=au;
+  S.pac=a.map(r=>({id:r.id,nome:r.nome,tel:r.telefone||'',obs:r.observacoes||''}));
+  S.proc=b.map(r=>({id:r.codigo,nome:r.nome,valor:+r.valor}));
+  S.ag=c.map(r=>({id:r.id,data:r.data,hora:r.hora.slice(0,5),pac:r.paciente_id,pacNome:r.paciente_nome,proc:r.procedimento_codigo,procNome:r.procedimento_nome,valor:+r.valor_procedimento,desc:+r.desconto,forma:r.forma,total:+r.total,taxa:+r.taxa_juros,totalFinal:+(r.total_final||r.total),atendidoPor:r.atendido_por,atendidoNome:r.atendente?.nome||null,pagoPor:r.pagador?.nome||null,pagoEm:r.pago_em,parcelas:(r.parcelas||[]).sort((x,y)=>x.numero-y.numero).map(p=>({n:p.numero,data:p.vencimento,valor:+p.valor,pago:p.pago}))}));
+  S.desp=d.map(r=>({id:r.id,desc:r.descricao,valor:+r.valor,data:r.data}));
+  const a2=document.activeElement;if(a2&&/INPUT|SELECT/.test(a2.tagName)&&$('#main').contains(a2))return;render()}
+const showLogin=v=>{$('#login').hidden=!v};
+async function entrar(){$('#lm').textContent='';const{error}=await sb.auth.signInWithPassword({email:$('#le').value.trim(),password:$('#ls').value});
+  if(error)$('#lm').textContent='E-mail ou senha incorretos.'}
+function init(){
+  if(!window.supabase||SB_URL.startsWith('COLE')){$('#lm').textContent='Configure SB_URL e SB_KEY no início do script.';showLogin(true);return}
+  sb=supabase.createClient(SB_URL,SB_KEY);
+  sb.auth.onAuthStateChange((ev,ses)=>{showLogin(!ses);
+    if(ses){ME=ses.user.id;$('#st').textContent=ses.user.email;setTimeout(load,0)}else{S={pac:[],proc:[],ag:[],desp:[],seq:0};render()}});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&sb)sb.auth.getSession().then(x=>x.data.session&&load())})}
+
+/* ---------- Agenda ---------- */
+function mv(n){cal.setMonth(cal.getMonth()+n);render()}
+function vAgenda(){
+  const y=cal.getFullYear(),m=cal.getMonth(),first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate(),hoje=iso(new Date());
+  const pre=iso(new Date(y,m,1)).slice(0,7),mesNome=cal.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+  let cells='<i></i>'.repeat(first);
+  for(let d=1;d<=days;d++){const s=iso(new Date(y,m,d)),n=S.ag.filter(a=>a.data==s).length;
+    cells+=`<button class="day ${s==sel?'sel':''} ${s==hoje?'today':''}" onclick="sel='${s}';render()" aria-label="${fmt(s)}">${d}${n?`<b>${n}</b>`:''}</button>`}
+  const mes=S.ag.filter(a=>a.data.startsWith(pre)).sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora));
+  const fat=mes.reduce((t,a)=>t+a.total,0),por={};
+  mes.forEach(a=>(por[a.data]=por[a.data]||[]).push(a));
+  const row=a=>`<div class="item ag" onclick="abrirPag('${a.id}')" onkeydown="if(event.key=='Enter')abrirPag('${a.id}')" tabindex="0" role="button"><div><strong>${a.hora} · ${esc(a.pacNome)}</strong><br><small>${esc(a.procNome)} · ${brl(a.valor)}${a.desc?` − desconto ${brl(a.desc)}`:''}</small></div><div style="text-align:right"><span class="tot">${brl(a.totalFinal||a.total)}</span><br>${a.forma?`<span class="tag ok">Pago · ${formaLbl(a.forma)}</span>`:'<span class="tag">Receber pagamento</span>'}</div></div>`;
+  const opt=(arr,f)=>arr.map(f).join(''),semCad=!S.pac.length||!S.proc.length;
+  return ph('Agenda','novo()','Novo agendamento')+`<div class="two"><section class="card"><div class="mh"><button class="ghost" onclick="mv(-1)" aria-label="Mês anterior">‹</button><h2>${mesNome}</h2><button class="ghost" onclick="mv(1)" aria-label="Próximo mês">›</button></div>
+  <div class="wk">${'DSTQQSS'.split('').map(c=>`<span>${c}</span>`).join('')}</div><div class="cal">${cells}</div>
+  <p style="text-align:center;margin:10px 0 0"><button class="ghost" onclick="irHoje()">Hoje</button></p></section>
+  <section class="card" id="frm"><h3 style="margin-top:0">Novo agendamento · ${fmt(sel)}</h3>
+  ${semCad?'<p class="mut">Cadastre ao menos um paciente e um procedimento para agendar.</p>':`
+  <div class="grid">
+  <label>Paciente<select id="ap">${opt(S.pac,p=>`<option value="${p.id}">${esc(p.nome)}</option>`)}</select></label>
+  <label>Procedimento<select id="ar" onchange="prev()">${opt(S.proc,p=>`<option value="${p.id}">${p.id} · ${esc(p.nome)}</option>`)}</select></label>
+  <label>Horário<input id="ah" type="time" value="09:00"></label>
+  <label>Valor<input id="av" readonly></label>
+  <label>Desconto (R$)<input id="ad" type="number" min="0" step="0.01" value="0" oninput="prev()"></label></div>
+  <p id="pv" class="tot"></p><button class="btn" onclick="addAg()">Agendar</button>`}</section></div>
+  <section class="card"><h2>Agendamentos de ${mesNome}</h2>
+  <div class="kpis"><div class="kpi"><span>Atendimentos</span><div>${mes.length}</div></div><div class="kpi"><span>Total agendado</span><div>${brl(fat)}</div></div></div>
+  <p class="mut">Ao concluir o atendimento, clique no paciente para registrar o pagamento.</p>
+  ${mes.length?Object.keys(por).map(d=>`<h3 class="dh ${d==sel?'cur':''}" onclick="sel='${d}';render()">${parse(d).toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'})}</h3>${por[d].map(row).join('')}`).join(''):'<p class="mut">Nenhum agendamento neste mês. Escolha um dia no calendário e agende ao lado.</p>'}</section>`}
+function calc(){const pr=S.proc.find(x=>x.id==$('#ar').value);if(!pr)return null;
+  const desc=Math.min(Math.max(+$('#ad').value||0,0),pr.valor);return{pr,desc,total:+(pr.valor-desc).toFixed(2)}}
+function prev(){if(!$('#ar'))return;const c=calc();if(!c)return;$('#av').value=brl(c.pr.valor);
+  $('#pv').textContent='Total '+brl(c.total)+' · o pagamento é registrado ao final do atendimento'}
+function addAg(){const c=calc(),p=S.pac.find(x=>x.id==$('#ap').value);if(!c||!p)return toast('Escolha paciente e procedimento');
+  const g={id:uid(),data:sel,hora:$('#ah').value||'09:00',pac:p.id,pacNome:p.nome,proc:c.pr.id,procNome:c.pr.nome,valor:c.pr.valor,desc:c.desc,forma:null,total:c.total,taxa:0,totalFinal:c.total,parcelas:[]};
+  S.ag.push(g);put('ag',g).then(load);render();toast('Agendado')}
+let pagId=null;
+function abrirPag(id){const a=S.ag.find(x=>x.id==id);if(!a)return;pagId=id;
+  $('#md').innerHTML=`<h2>${esc(a.pacNome)}</h2><p class="mut" style="margin:2px 0 12px">${esc(a.procNome)} · ${fmt(a.data)} às ${a.hora}</p>
+  <div class="grid"><label>Valor<input value="${brl(a.valor)}" readonly></label><label>Desconto (R$)<input id="pd" type="number" min="0" step="0.01" value="${a.desc||0}" oninput="prevPag()"></label>
+  <label>Forma de pagamento<select id="pf" onchange="prevPag()">${FORMAS.map(f=>`<option value="${f[0]}" ${f[0]==a.forma?'selected':''}>${f[1]}</option>`).join('')}</select></label>
+  <label>Atendido por<select id="pa">${(S.perfis||[]).map(u=>`<option value="${u.id}" ${u.id==(a.atendidoPor||ME)?'selected':''}>${esc(u.nome)}</option>`).join('')}</select></label></div>
+  <p class="mut" style="margin:0">Pagamento confirmado por ${esc(nomeDe(ME))} (registro automático)</p>
+  <p id="pp" class="tot"></p><p id="pq" class="mut"></p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><button class="btn" onclick="confirmarPag()">${a.forma?'Salvar alteração':'Confirmar pagamento'}</button><button class="ghost" onclick="fechar()">Fechar</button><button class="rm" onclick="cancelarPag()">Cancelar agendamento</button></div>`;
+  $('#modal').hidden=false;prevPag()}
+function calcPag(){const a=S.ag.find(x=>x.id==pagId),desc=Math.min(Math.max(+$('#pd').value||0,0),a.valor),total=+(a.valor-desc).toFixed(2),f=$('#pf').value;return{a,desc,total,f,...plano(total,f)}}
+function prevPag(){const c=calcPag();$('#pp').textContent='Total '+brl(c.final);
+  $('#pq').textContent=c.n>1?`${c.n}x de ${brl(c.final/c.n)} · juros de ${c.t.toLocaleString('pt-BR')}% (${brl(c.final-c.total)}) · a 1ª parcela entra como recebida e as demais ficam pendentes no caixa`:'Recebimento à vista, sem juros.'}
+function confirmarPag(){const c=calcPag(),a=c.a;
+  if(a.forma&&!confirm('Alterar o pagamento refaz as parcelas deste atendimento. Continuar?'))return;
+  const g={...a,atendidoPor:$('#pa')?.value||ME,desc:c.desc,total:c.total,forma:c.f,taxa:c.t,totalFinal:c.final,parcelas:gerarParcelas(a.data,c.final,c.n)};
+  S.ag=S.ag.map(x=>x.id==g.id?g:x);put('ag',g).then(load);fechar();render();toast('Pagamento registrado')}
+function fechar(){$('#modal').hidden=true}
+function cancelarPag(){if(confirm('Cancelar este agendamento? Os valores saem do caixa.')){const id=pagId;S.ag=S.ag.filter(a=>a.id!=id);del('ag',id).then(load);fechar();render();toast('Agendamento cancelado')}}
+document.addEventListener('keydown',e=>{if(e.key=='Escape')fechar()});
+function delAg(id){if(confirm('Cancelar este agendamento? Os valores saem do caixa.')){S.ag=S.ag.filter(a=>a.id!=id);del('ag',id);render();toast('Agendamento cancelado')}}
+
+/* ---------- Histórico ---------- */
+const nomeDe=id=>((S.perfis||[]).find(u=>u.id==id)||{}).nome||'—';
+const dh=x=>x?new Date(x).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}):'';
+let hp='mes',hr=iso(new Date()),hq='';
+function histList(){
+  const[a,b]=range(hp,hr),hoje=iso(new Date()),q=hq.trim().toLowerCase();
+  const L=S.ag.filter(g=>g.data>=a&&g.data<=b&&(g.forma||g.data<=hoje)&&(!q||g.pacNome.toLowerCase().includes(q))).sort((x,y)=>(y.data+y.hora).localeCompare(x.data+x.hora));
+  const pagos=L.filter(g=>g.forma),tot=pagos.reduce((t,g)=>t+(g.totalFinal||g.total),0);
+  return `<p class="mut">Período: ${fmt(a)} a ${fmt(b)}</p><div class="kpis"><div class="kpi"><span>Atendimentos</span><div>${L.length}</div></div><div class="kpi"><span>Com pagamento registrado</span><div>${pagos.length}</div></div><div class="kpi"><span>Total pago</span><div class="in">${brl(tot)}</div></div></div>`+
+  (L.length?L.map(g=>{const n=g.parcelas.length,rec=g.parcelas.filter(p=>p.pago).length;
+    return `<div class="item"><div><strong>${esc(g.pacNome)}</strong><br><small>${esc(g.procNome)} · ${fmt(g.data)} às ${g.hora}</small><br><small>Atendido por ${esc(g.atendidoNome||'—')}${g.forma?` · Pagamento confirmado por ${esc(g.pagoPor||'—')}${g.pagoEm?' em '+dh(g.pagoEm):''}`:''}</small></div><div style="text-align:right"><span class="tot">${g.forma?brl(g.totalFinal||g.total):'—'}</span><br>${g.forma?`<span class="tag ok">${formaLbl(g.forma)}</span>${n>1?`<br><small>${n}x de ${brl(g.parcelas[0].valor)} · ${rec}/${n} recebidas</small>`:''}`:'<span class="tag">Sem pagamento registrado</span>'}</div></div>`}).join(''):'<p class="mut">Nenhum atendimento neste período.</p>')}
+function vHist(){
+  const ev=(S.aud||[]).map(e=>{const d=e.detalhes||{};return `<div class="item"><div><strong>${esc(e.usuario_nome||'—')}</strong> · ${esc(e.acao)}<br><small>${esc(e.paciente_nome||'')}${d.procedimento?' · '+esc(d.procedimento):''}${d.forma?' · '+formaLbl(d.forma):''}${d.parcela?' · parcela '+d.parcela:''}</small></div><div style="text-align:right"><small>${dh(e.criado_em)}</small>${d.total||d.valor?`<br>${brl(d.total||d.valor)}`:''}</div></div>`}).join('');
+  return `<div class="ph"><h2>Histórico de atendimentos</h2></div><section class="card">
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">${PERS.map(([k,l])=>`<button class="chip ${hp==k?'on':''}" onclick="hp='${k}';render()">${l}</button>`).join('')}</div>
+  <div class="grid"><label>Data de referência<input type="date" value="${hr}" onchange="hr=this.value||hr;render()"></label><label>Buscar paciente<input value="${esc(hq)}" oninput="hq=this.value;$('#hl').innerHTML=histList()" placeholder="Nome"></label></div>
+  <div id="hl">${histList()}</div></section>
+  <section class="card"><h3 style="margin-top:0">Registro de auditoria</h3><p class="mut">Registro automático e imutável: usuário, data e hora de cada ação. Últimos 100 eventos.</p>${ev||'<p class="mut">Nenhum evento registrado.</p>'}</section>`}
+
+/* ---------- Pacientes ---------- */
+function vPac(){return ph('Pacientes',"tg('pac')",'Novo paciente')+(op.pac?`<section class="card" id="frm"><h3 style="margin-top:0">Novo paciente</h3><div class="grid"><label>Nome completo<input id="pn"></label><label>WhatsApp<input id="pt" type="tel" placeholder="(19) 90000-0000"></label><label>Observações<input id="po"></label></div><button class="btn" onclick="addPac()">Salvar paciente</button></section>`:'')+`<section class="card"><h3 style="margin-top:0">${S.pac.length} paciente(s)</h3>${S.pac.length?S.pac.map(p=>`<div class="item"><div><strong>${esc(p.nome)}</strong><br><small>${esc(p.tel||'sem telefone')}${p.obs?' · '+esc(p.obs):''}</small></div><button class="rm" onclick="delPac('${p.id}')">Remover</button></div>`).join(''):'<p class="mut">Nenhum paciente cadastrado ainda. Use o botão Novo paciente.</p>'}</section>`}
+function addPac(){const nome=$('#pn').value.trim();if(!nome)return toast('Informe o nome do paciente');
+  const o={id:uid(),nome,tel:$('#pt').value.trim(),obs:$('#po').value.trim()};S.pac.push(o);put('pac',o);op.pac=0;render();toast('Paciente salvo')}
+function delPac(id){if(confirm('Remover paciente? Os agendamentos já feitos permanecem.')){S.pac=S.pac.filter(p=>p.id!=id);del('pac',id);render()}}
+
+/* ---------- Procedimentos ---------- */
+function vProc(){return ph('Procedimentos',"tg('proc')",'Novo procedimento')+(op.proc?`<section class="card" id="frm"><h3 style="margin-top:0">Novo procedimento</h3><div class="grid"><label>Nome<input id="rn" placeholder="Ex.: Drenagem linfática"></label><label>Valor (R$)<input id="rv" type="number" min="0" step="0.01"></label></div><button class="btn" onclick="addProc()">Salvar procedimento</button></section>`:'')+`<section class="card"><h3 style="margin-top:0">${S.proc.length} procedimento(s)</h3>${S.proc.length?S.proc.map(p=>`<div class="item"><div><strong>${p.id}</strong> · ${esc(p.nome)}</div><div><span class="tot">${brl(p.valor)}</span> <button class="rm" onclick="editProc('${p.id}')">Editar valor</button> <button class="rm" onclick="delProc('${p.id}')">Remover</button></div></div>`).join(''):'<p class="mut">Nenhum procedimento cadastrado ainda. Use o botão Novo procedimento.</p>'}</section>`}
+function addProc(){const nome=$('#rn').value.trim(),valor=+$('#rv').value;if(!nome||!(valor>=0)||$('#rv').value==='')return toast('Informe nome e valor');
+  const mx=Math.max(0,...S.proc.map(x=>+x.id.slice(1)||0)),o={id:'P'+String(mx+1).padStart(3,'0'),nome,valor};S.proc.push(o);put('proc',o);op.proc=0;render();toast('Procedimento salvo')}
+function editProc(id){const p=S.proc.find(x=>x.id==id),v=prompt('Novo valor (R$) para '+p.nome,p.valor);if(v===null)return;const n=parseFloat(String(v).replace(',','.'));if(isNaN(n))return toast('Valor inválido');const o={...p,valor:n};S.proc=S.proc.map(x=>x.id==id?o:x);put('proc',o);render()}
+function delProc(id){if(confirm('Remover procedimento?')){S.proc=S.proc.filter(p=>p.id!=id);del('proc',id);render()}}
+
+/* ---------- Fluxo de caixa ---------- */
+function vCaixa(){
+  const[a,b]=range(per,ref),ent=[];
+  S.ag.forEach(g=>g.parcelas.forEach(p=>ent.push({t:'in',data:p.data,d:`${g.pacNome} · ${g.procNome}${g.parcelas.length>1?` (${p.n}/${g.parcelas.length})`:''}`,v:p.valor,pago:p.pago,g:g.id,n:p.n})));
+  S.desp.forEach(x=>ent.push({t:'out',data:x.data,d:x.desc,v:x.valor,pago:true,x:x.id}));
+  const L=ent.filter(e=>e.data>=a&&e.data<=b).sort((p,q)=>p.data.localeCompare(q.data));
+  const rec=sum(L.filter(e=>e.t=='in'&&e.pago)),pen=sum(L.filter(e=>e.t=='in'&&!e.pago)),sai=sum(L.filter(e=>e.t=='out'));
+  return ph('Fluxo de caixa',"tg('desp')",'Lançar despesa')+(op.desp?`<section class="card" id="frm"><h3 style="margin-top:0">Lançar despesa</h3><div class="grid"><label>Descrição<input id="dd" placeholder="Ex.: aluguel, produtos, luz"></label><label>Valor (R$)<input id="dv" type="number" min="0" step="0.01"></label><label>Data<input id="dt" type="date" value="${ref}"></label></div><button class="btn" onclick="addDesp()">Lançar despesa</button></section>`:'')+`<section class="card"><h3 style="margin-top:0">Resumo do período</h3>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">${PERS.map(([k,l])=>`<button class="chip ${per==k?'on':''}" onclick="per='${k}';render()">${l}</button>`).join('')}</div>
+  <label style="max-width:200px">Data de referência<input type="date" value="${ref}" onchange="ref=this.value||ref;render()"></label>
+  <p class="mut">Período: ${fmt(a)} a ${fmt(b)}</p>
+  <div class="kpis"><div class="kpi"><span>Entradas recebidas</span><div class="in">${brl(rec)}</div></div><div class="kpi"><span>A receber (parcelas)</span><div>${brl(pen)}</div></div><div class="kpi"><span>Saídas / despesas</span><div class="out">${brl(sai)}</div></div><div class="kpi"><span>Atendimentos sem pagamento</span><div>${S.ag.filter(g=>!g.forma&&g.data>=a&&g.data<=b).length}</div></div><div class="kpi"><span>Saldo do período</span><div>${brl(rec-sai)}</div></div><div class="kpi"><span>Saldo previsto</span><div>${brl(rec+pen-sai)}</div></div></div>
+  <div class="scroll">${L.length?L.map(e=>`<div class="item"><div><strong>${esc(e.d)}</strong><br><small>${fmt(e.data)}</small></div><div style="text-align:right"><span class="${e.t}"> ${e.t=='in'?'+':'−'}${brl(e.v)}</span><br>${e.t=='out'?`<button class="rm" onclick="delDesp('${e.x}')">Remover</button>`:e.pago?'<span class="tag ok">Recebido</span>':`<span class="tag">Pendente</span> <button class="rm" style="color:var(--gold2)" onclick="baixa('${e.g}',${e.n})">Marcar recebido</button>`}</div></div>`).join(''):'<p class="mut">Sem movimentações neste período.</p>'}</div></section>`}
+function addDesp(){const desc=$('#dd').value.trim(),v=+$('#dv').value;if(!desc||!(v>0))return toast('Informe descrição e valor');
+  const o={id:uid(),desc,valor:v,data:$('#dt').value||ref};S.desp.push(o);put('desp',o);op.desp=0;render();toast('Despesa lançada')}
+function delDesp(id){S.desp=S.desp.filter(x=>x.id!=id);del('desp',id);render()}
+async function baixa(g,n){const r=await sb.from('parcelas').update({pago:true}).eq('agendamento_id',g).eq('numero',n);if(r.error)return toast('Erro ao salvar: '+r.error.message);await load();toast('Parcela recebida')}
+render();
+init();
+</script>
+</body>
+</html>
